@@ -1,29 +1,25 @@
 import pandas as pd
-import os
 
-DATA_PATH = "data/raw"
+# load file
+df = pd.read_csv("data/raw/02_nav_history.csv")
 
-def clean_data():
-    print("Function started...")
-    for file in os.listdir(DATA_PATH):
-        if file.endswith(".csv"):
-            print(f"\nCleaning: {file}")
-            
-            df = pd.read_csv(os.path.join(DATA_PATH, file))
-            
-            # Remove duplicates
-            df = df.drop_duplicates()
-            
-            # Try converting date columns
-            for col in df.columns:
-                if "date" in col.lower():
-                    df[col] = pd.to_datetime(df[col], errors='coerce')
-            
-            # Fill missing values
-            df = df.fillna(method='ffill')
-            
-            print("After Cleaning Shape:", df.shape)
-            print(df.head())
+print("Before Cleaning:", df.shape)
 
-if __name__ == "__main__":
-    clean_data()
+# convert date
+df['date'] = pd.to_datetime(df['date'], errors='coerce')
+
+# remove duplicates
+df = df.drop_duplicates()
+
+# fill missing NAV
+df['nav'] = df['nav'].ffill()
+
+# remove invalid NAV
+df = df[df['nav'] > 0]
+
+print("After Cleaning:", df.shape)
+
+# save cleaned file
+df.to_csv("data/processed/nav_cleaned.csv", index=False)
+
+print("✅ Cleaning completed")
